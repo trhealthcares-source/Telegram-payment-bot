@@ -1,4 +1,8 @@
 const bot = require("./bot");
+
+console.log("🔥 telegram.js loaded");
+
+const bot = require("./bot");
 const Razorpay = require("./razorpay");
 
 // /start command
