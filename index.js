@@ -11,18 +11,23 @@ const razorpayWebhook = require("./webhook");
 const app = express();
 
 /**
- * IMPORTANT:
- * This must come BEFORE routes
+ * MUST be before routes
  */
 app.use(bodyParser.json());
 
 /**
  * Telegram webhook endpoint
- * This MUST match the webhook URL you set
+ * Always return 200 to avoid 502 Bad Gateway
  */
 app.post("/telegram", (req, res) => {
-  bot.processUpdate(req.body);
-  res.sendStatus(200);
+  try {
+    bot.processUpdate(req.body);
+    res.sendStatus(200);
+  } catch (error) {
+    console.error("Telegram webhook error:", error);
+    // IMPORTANT: still return 200 so Telegram does not retry
+    res.sendStatus(200);
+  }
 });
 
 /**
@@ -38,9 +43,7 @@ app.get("/", (req, res) => {
 });
 
 /**
- * IMPORTANT:
  * Use Railway provided PORT
- * Do NOT hardcode 8080
  */
 const PORT = process.env.PORT || 3000;
 
