@@ -3,9 +3,23 @@ require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 
-const bot = require("./bot");          // Telegram bot (WEBHOOK MODE)
-require("./telegram");                 // message + button handlers
-require("./reminder");                 // reminder cron
+const bot = require("./bot"); // Telegram bot (WEBHOOK MODE)
+
+// 🔴 IMPORTANT DEBUG WRAPPER
+try {
+  require("./telegram"); // message + button handlers
+  console.log("telegram.js loaded successfully");
+} catch (err) {
+  console.error("telegram.js failed to load:", err);
+}
+
+try {
+  require("./reminder"); // reminder cron
+  console.log("reminder.js loaded successfully");
+} catch (err) {
+  console.error("reminder.js failed to load:", err);
+}
+
 const razorpayWebhook = require("./webhook");
 
 const app = express();
