@@ -3,26 +3,26 @@ require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 
-const bot = require("./bot");        // Telegram bot (NO polling)
-require("./telegram");               // message + button logic
-require("./reminder");               // reminder job
-const webhook = require("./webhook"); // razorpay webhook
+const bot = require("./bot");          // Telegram bot
+require("./telegram");                 // handlers
+require("./reminder");                 // cron
+const razorpayWebhook = require("./webhook");
 
 const app = express();
 
-// required for Telegram + Razorpay
+// MUST be before routes
 app.use(bodyParser.json());
 
-// Razorpay webhook
-app.use("/", webhook);
-
-// Telegram webhook endpoint
+// Telegram webhook (MUST be BEFORE other routes)
 app.post("/telegram", (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
 });
 
-// health check
+// Razorpay webhook
+app.use("/", razorpayWebhook);
+
+// Health check
 app.get("/", (req, res) => {
   res.send("Bot running");
 });
