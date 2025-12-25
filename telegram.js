@@ -1,8 +1,6 @@
-const TelegramBot = require("node-telegram-bot-api");
 const axios = require("axios");
 const db = require("./db");
-
-const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+const bot = require("./bot"); // 👈 reuse SAME bot
 
 async function showMenu(chatId, name) {
   await bot.sendMessage(
@@ -25,30 +23,22 @@ async function showMenu(chatId, name) {
   );
 }
 
-/**
- * /start handler → send menu ONCE
- */
+// /start
 bot.onText(/\/start/, async (msg) => {
   await showMenu(msg.chat.id, msg.from.first_name);
 });
 
-/**
- * Any other message → send menu
- * (IMPORTANT: ignore /start to prevent duplicate)
- */
+// any message (except /start)
 bot.on("message", async (msg) => {
   if (!msg.text) return;
   if (msg.text.startsWith("/start")) return;
   await showMenu(msg.chat.id, msg.from.first_name);
 });
 
-/**
- * Button actions
- */
+// buttons
 bot.on("callback_query", async (q) => {
   const chatId = q.message.chat.id;
 
-  // PAY BUTTON
   if (q.data === "PAY") {
     const qr = await axios.post(
       "https://api.razorpay.com/v1/payments/qr_codes",
@@ -78,7 +68,6 @@ bot.on("callback_query", async (q) => {
     });
   }
 
-  // JOIN BUTTON
   if (q.data === "JOIN") {
     const res = await db.query(
       "SELECT paid_until FROM users WHERE telegram_id=$1",
@@ -96,11 +85,6 @@ bot.on("callback_query", async (q) => {
     } else {
       await showMenu(chatId, q.from.first_name);
     }
-  }
-
-  // VERIFY BUTTON (payment already handled by webhook)
-  if (q.data === "VERIFY") {
-    await bot.sendMessage(chatId, "⏳ Verifying payment...\nIf paid, access will unlock automatically.");
   }
 
   await bot.answerCallbackQuery(q.id);
